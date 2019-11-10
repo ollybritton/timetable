@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kortschak/zalgo"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -21,6 +22,7 @@ var ErrNoPipe = errors.New("No pipe was supplied")
 var (
 	days            string
 	plain           bool
+	z               bool
 	delim           string
 	split           string
 	timetableAmount int
@@ -125,6 +127,7 @@ func init() {
 	flag.StringVar(&delim, "delim", ", ", "what delimeter to use")
 	flag.StringVar(&split, "split", "\n", "what to split the input on")
 	flag.BoolVar(&plain, "plain", false, "make the output plain (no fancy table)")
+	flag.BoolVar(&z, "zalgo", false, "he comes")
 
 	flag.Parse()
 }
@@ -165,9 +168,11 @@ func main() {
 		timetableEach,
 	)
 
+	output := &strings.Builder{}
+
 	if !plain {
 
-		table := tablewriter.NewWriter(os.Stdout)
+		table := tablewriter.NewWriter(output)
 		table.SetHeader([]string{"Day", "Items"})
 
 		var index int
@@ -186,8 +191,27 @@ func main() {
 		var index int
 		for i, val := range rawData {
 			index = (i + timetableStart) % len(dayNames)
-			fmt.Printf("%v: %v\n", dayNames[index], strings.Join(val, delim))
+			output.WriteString(fmt.Sprintf("%v: %v\n", dayNames[index], strings.Join(val, delim)))
 		}
 
+	}
+
+	if z {
+		c := zalgo.NewCorrupter(os.Stdout)
+		c.Zalgo = func(n int, r rune, z *zalgo.Corrupter) bool {
+			z.Up += 0.1
+			z.Middle += complex(0.01, 0.01)
+			z.Down += complex(real(z.Down)*0.1, 0)
+			return false
+		}
+
+		c.Up = complex(0, 0.2)
+		c.Middle = complex(0, 0.2)
+		c.Down = complex(0.001, 0.3)
+
+		fmt.Fprintln(c, output.String())
+	} else {
+
+		fmt.Print(output.String())
 	}
 }
