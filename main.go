@@ -10,6 +10,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 // ErrNoPipe represents the error that occurs when a user doesn't use a pipe.
@@ -18,6 +20,9 @@ var ErrNoPipe = errors.New("No pipe was supplied")
 // Flags.
 var (
 	days            string
+	plain           bool
+	delim           string
+	split           string
 	timetableAmount int
 	timetableEach   int
 	timetableStart  int
@@ -112,10 +117,14 @@ func timetable(list []string, length int, each int) [][]string {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
-	flag.StringVar(&days, "days", "weekdays", "what mapping to use, either all or weekdays")
-	flag.IntVar(&timetableAmount, "amount", 5, "how many days to create the timetable for")
+	flag.StringVar(&days, "days", "weekdays", "what mapping to use, either all, weekdays or weekends")
+	flag.IntVar(&timetableAmount, "amount", 0, "how many days to create the timetable for")
 	flag.IntVar(&timetableEach, "each", 3, "how many items per day")
 	flag.IntVar(&timetableStart, "start", 0, "the day to start on (0 indexed)")
+
+	flag.StringVar(&delim, "delim", ", ", "what delimeter to use")
+	flag.StringVar(&split, "split", "\n", "what to split the input on")
+	flag.BoolVar(&plain, "plain", false, "make the output plain (no fancy table)")
 
 	flag.Parse()
 }
@@ -135,8 +144,10 @@ func main() {
 
 	var dayNames []string
 	switch days {
-	case "weekdays":
+	case "weekdays", "weekday":
 		dayNames = []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}
+	case "weekends", "weekend":
+		dayNames = []string{"Saturday", "Sunday"}
 	case "all":
 		dayNames = []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
 	default:
@@ -144,13 +155,39 @@ func main() {
 		os.Exit(1)
 	}
 
-	table := timetable(
-		strings.Split(subjects, "\n"),
+	if timetableAmount == 0 {
+		timetableAmount = len(dayNames)
+	}
+
+	rawData := timetable(
+		strings.Split(subjects, split),
 		timetableAmount,
 		timetableEach,
 	)
 
-	for i, val := range table {
-		fmt.Println(dayNames[(i+timetableStart)%len(dayNames)], "=>", strings.Join(val, ", "))
+	if !plain {
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Day", "Items"})
+
+		var index int
+		for i, val := range rawData {
+			index = (i + timetableStart) % len(dayNames)
+			table.Append([]string{dayNames[index], strings.Join(val, delim)})
+		}
+
+		table.SetBorder(false)
+		table.SetColWidth(100)
+
+		table.Render()
+
+	} else {
+
+		var index int
+		for i, val := range rawData {
+			index = (i + timetableStart) % len(dayNames)
+			fmt.Printf("%v: %v\n", dayNames[index], strings.Join(val, delim))
+		}
+
 	}
 }
