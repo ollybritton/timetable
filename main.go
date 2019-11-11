@@ -25,10 +25,13 @@ var (
 	z               bool
 	delim           string
 	split           string
+	noSeed          bool
 	timetableAmount int
 	timetableEach   int
 	timetableStart  int
 )
+
+var seed int64
 
 func getPipe() (string, error) {
 	info, err := os.Stdin.Stat()
@@ -117,8 +120,6 @@ func timetable(list []string, length int, each int) [][]string {
 }
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
-
 	flag.StringVar(&days, "days", "weekdays", "what mapping to use, either all, weekdays or weekends")
 	flag.IntVar(&timetableAmount, "amount", 0, "how many days to create the timetable for")
 	flag.IntVar(&timetableEach, "each", 3, "how many items per day")
@@ -128,6 +129,8 @@ func init() {
 	flag.StringVar(&split, "split", "\n", "what to split the input on")
 	flag.BoolVar(&plain, "plain", false, "make the output plain (no fancy table)")
 	flag.BoolVar(&z, "zalgo", false, "he comes")
+	flag.BoolVar(&noSeed, "no-seed", false, "print the random number seed")
+	flag.Int64Var(&seed, "seed", time.Now().UnixNano(), "seed to use")
 
 	flag.Parse()
 }
@@ -157,6 +160,12 @@ func main() {
 		fmt.Printf("Unknown days option %q. Please use 'weekdays' or 'all'.\n", days)
 		os.Exit(1)
 	}
+
+	if !noSeed {
+		fmt.Printf("Seed: %v\n\n", seed)
+	}
+
+	rand.Seed(seed)
 
 	if timetableAmount == 0 {
 		timetableAmount = len(dayNames)
