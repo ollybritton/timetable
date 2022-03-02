@@ -16,7 +16,7 @@ import (
 )
 
 // ErrNoPipe represents the error that occurs when a user doesn't use a pipe.
-var ErrNoPipe = errors.New("No pipe was supplied")
+var ErrNoPipe = errors.New("no pipe was supplied")
 
 // Flags.
 var (
@@ -39,7 +39,7 @@ func getPipe() (string, error) {
 		return "", err
 	}
 
-	if info.Mode()&os.ModeCharDevice != 0 || info.Size() <= 0 {
+	if info.Mode()&os.ModeCharDevice != 0 {
 		return "", ErrNoPipe
 	}
 
@@ -112,9 +112,7 @@ func timetable(list []string, length int, each int) [][]string {
 	}
 
 	chunks := chunk(full, each)
-	for _, c := range chunks {
-		table = append(table, c)
-	}
+	table = append(table, chunks...)
 
 	return table[:length]
 }
@@ -140,6 +138,10 @@ func main() {
 	if errors.Is(err, ErrNoPipe) {
 		fmt.Println("This command is designed to work with pipes.")
 		fmt.Println("Example: cat subjects.txt | timetable")
+		os.Exit(1)
+	} else if err != nil {
+		fmt.Println("An error occured while generating your timetable:")
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
@@ -220,7 +222,6 @@ func main() {
 
 		fmt.Fprintln(c, output.String())
 	} else {
-
 		fmt.Print(output.String())
 	}
 }

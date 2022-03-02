@@ -1,5 +1,5 @@
 # Timetable
-Timetable is a ~~simple~~ needlessly overengineered tool for generating a timetable. My use case is to generate a revision timetable.
+Timetable is a needlessly overengineered tool for generating a timetable. My use case is for generating revision timetables.
 
 ## Installation
 Assuming you have the `go` command installed:
@@ -28,10 +28,10 @@ Seed: 1573504119091066000
   Friday    | English, IT, History    
 ```
 
-## Wtf is this about the seed
+## What's the seed?
 Like I said, poorly overengineered: That is the seed for the RNG. It allows you to generate timetables and then extend them later.
 
-For example, say I make a timetable stretching from Monday to Friday and then on Friday I realise I wanted a table that lasted the full weekend. I could just generate a new timetable, but it would mean that some items in the list would be under represented. So instead, I just use the `seed` output of the first run as an input to the second:
+For example, say I make a timetable stretching from Monday to Friday and then on Friday I realise I wanted a table that lasted the full weekend. I could just generate a new timetable, but it would mean that some items in the list would be under represented. So instead, I use the `seed` output of the first run as an input to the second:
 
 ```bash
 $ cat items.txt | timetable -seed 1573504119091066000 -days all
@@ -39,10 +39,8 @@ $ cat items.txt | timetable -seed 1573504119091066000 -days all
 
 Then I will continue that timetable instead of creating a new one.
 
-Horrible, I know.
-
 ## "Advanced" Usage
-Because why not ruthlessly overengineer what should be a super simple program? Run `timetable -help`
+Why not ruthlessly overengineer what should be a super simple program? Run `timetable -help`
 
 ```
 Usage of timetable:
