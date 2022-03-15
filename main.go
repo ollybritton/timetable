@@ -173,6 +173,9 @@ func main() {
 		timetableAmount = len(dayNames)
 	}
 
+	// Remove newlines at start and end.
+	subjects = strings.Trim(subjects, "\n")
+
 	rawData := timetable(
 		strings.Split(subjects, split),
 		timetableAmount,
